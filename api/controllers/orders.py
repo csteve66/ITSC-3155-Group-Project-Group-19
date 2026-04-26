@@ -7,12 +7,19 @@ import uuid
 
 
 def create(db: Session, request):
+    # Validation: delivery orders must have an address
+    if request.order_type == 'delivery' and not request.customer_address:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Customer address is required for delivery orders"
+        )
     tracking_number = f"ORD-{datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6].upper()}"
     new_item = model.Order(
         customer_name=request.customer_name,
         customer_phone=request.customer_phone,
         customer_address=request.customer_address,
         description=request.description,
+        order_type=request.order_type,
         tracking_number=tracking_number,
         order_status="pending",
         status_updated_at=datetime.now(),
@@ -55,6 +62,14 @@ def update(db: Session, item_id, request):
         if not item.first():
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Id not found!")
         update_data = request.dict(exclude_unset=True)
+        if update_data.get('order_type') == 'delivery':
+            existing = item.first()
+            new_address = update_data.get('customer_address', existing.customer_address)
+            if not new_address:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Customer address is required for delivery orders"
+                )
         if "order_status" in update_data:
             update_data["status_updated_at"] = datetime.now()
         item.update(update_data, synchronize_session=False)
