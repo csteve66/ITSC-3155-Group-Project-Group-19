@@ -21,11 +21,19 @@ class OrderUpdate(BaseModel):
     customer_phone: Optional[str] = None
     customer_address: Optional[str] = None
     description: Optional[str] = None
+    order_status: Optional[str] = None
+
+
+class OrderStatusUpdate(BaseModel):
+    order_status: str
 
 
 class Order(OrderBase):
     id: int
     order_date: Optional[datetime] = None
+    tracking_number: str
+    order_status: str
+    status_updated_at: Optional[datetime] = None
     order_details: list[OrderDetail] = None
 
     class ConfigDict:

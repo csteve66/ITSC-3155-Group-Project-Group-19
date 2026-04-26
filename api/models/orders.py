@@ -14,6 +14,9 @@ class Order(Base):
     customer_address = Column(String(500), nullable=True)
     order_date = Column(DATETIME, nullable=False, server_default=str(datetime.now()))
     description = Column(String(300))
+    tracking_number = Column(String(64), nullable=False, unique=True, index=True)
+    order_status = Column(String(32), nullable=False, server_default="pending")
+    status_updated_at = Column(DATETIME, nullable=False, server_default=str(datetime.now()))
 
     customer = relationship("Customer", back_populates="orders")
     promotions = relationship("Promotion", back_populates="order")

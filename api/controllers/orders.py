@@ -2,14 +2,20 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status, Response, Depends
 from ..models import orders as model
 from sqlalchemy.exc import SQLAlchemyError
+from datetime import datetime
+import uuid
 
 
 def create(db: Session, request):
+    tracking_number = f"ORD-{datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6].upper()}"
     new_item = model.Order(
         customer_name=request.customer_name,
         customer_phone=request.customer_phone,
         customer_address=request.customer_address,
         description=request.description,
+        tracking_number=tracking_number,
+        order_status="pending",
+        status_updated_at=datetime.now(),
     )
 
     try:
@@ -49,6 +55,8 @@ def update(db: Session, item_id, request):
         if not item.first():
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Id not found!")
         update_data = request.dict(exclude_unset=True)
+        if "order_status" in update_data:
+            update_data["status_updated_at"] = datetime.now()
         item.update(update_data, synchronize_session=False)
         db.commit()
     except SQLAlchemyError as e:
@@ -68,3 +76,17 @@ def delete(db: Session, item_id):
         error = str(e.__dict__['orig'])
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+def read_by_tracking_number(db: Session, tracking_number: str):
+    try:
+        item = db.query(model.Order).filter(model.Order.tracking_number == tracking_number).first()
+        if not item:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Tracking number not found!",
+            )
+    except SQLAlchemyError as e:
+        error = str(e.__dict__['orig'])
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
+    return item
