@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from .order_details import OrderDetail
 
 
@@ -10,6 +10,7 @@ class OrderBase(BaseModel):
     customer_phone: Optional[str] = None
     customer_address: Optional[str] = None
     description: Optional[str] = None
+    order_type: str = Field(default='takeout', pattern='^(takeout|delivery)$')
 
 
 class OrderCreate(OrderBase):
@@ -22,6 +23,7 @@ class OrderUpdate(BaseModel):
     customer_address: Optional[str] = None
     description: Optional[str] = None
     order_status: Optional[str] = None
+    order_type: Optional[str] = Field(default=None, pattern='^(takeout|delivery)$')
 
 
 class OrderStatusUpdate(BaseModel):
