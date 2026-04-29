@@ -51,6 +51,23 @@ def _sync_orders_columns():
                     )
                 )
 
+def _sync_sandwiches_columns():
+    inspector = inspect(engine)
+    existing_columns = {column["name"] for column in inspector.get_columns("sandwiches")}
+    statements = []
+
+    if "calories" not in existing_columns:
+        statements.append("ALTER TABLE sandwiches ADD COLUMN calories INT NULL")
+    if "category" not in existing_columns:
+        statements.append("ALTER TABLE sandwiches ADD COLUMN category VARCHAR(100) NULL")
+    if "description" not in existing_columns:
+        statements.append("ALTER TABLE sandwiches ADD COLUMN description VARCHAR(300) NULL")
+
+    if statements:
+        with engine.begin() as connection:
+            for statement in statements:
+                connection.execute(text(statement))
+
 
 def index():
     customers.Base.metadata.create_all(engine)
@@ -59,6 +76,7 @@ def index():
     order_details.Base.metadata.create_all(engine)
     recipes.Base.metadata.create_all(engine)
     sandwiches.Base.metadata.create_all(engine)
+    _sync_sandwiches_columns()
     resources.Base.metadata.create_all(engine)
     promotions.Base.metadata.create_all(engine)
     payments.Base.metadata.create_all(engine)
