@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from pydantic import BaseModel, Field
+from decimal import Decimal
 from .order_details import OrderDetail
 
 
@@ -27,7 +28,22 @@ class OrderUpdate(BaseModel):
 
 
 class OrderStatusUpdate(BaseModel):
-    order_status: str
+    actor_role: str = Field(pattern='^(staff|cook)$')
+    order_status: str = Field(
+        pattern='^(pending|preparing|ready_for_pickup|out_for_delivery|completed|cancelled)$'
+    )
+
+
+class OrderHistoryRecord(BaseModel):
+    id: int
+    tracking_number: str
+    status: str
+    order_type: str
+    total_price: Decimal
+    order_date: Optional[datetime] = None
+
+    class ConfigDict:
+        from_attributes = True
 
 
 class Order(OrderBase):
