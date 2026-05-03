@@ -56,3 +56,23 @@ class Order(OrderBase):
 
     class ConfigDict:
         from_attributes = True
+
+
+class KitchenItem(BaseModel):
+    sandwich_name: str
+    quantity: int
+
+    class ConfigDict:
+        from_attributes = True
+
+
+class KitchenOrder(BaseModel):
+    id: int
+    tracking_number: str
+    order_status: str
+    order_type: str
+    order_date: Optional[datetime] = None
+    items: list[KitchenItem] = []
+
+    class ConfigDict:
+        from_attributes = True

@@ -30,6 +30,35 @@ def read_by_tracking_number(tracking_number: str, db: Session = Depends(get_db))
     return controller.read_by_tracking_number(db, tracking_number=tracking_number)
 
 
+@router.get("/staff", response_model=list[schema.Order])
+def read_staff_dashboard(db: Session = Depends(get_db)):
+    return controller.read_staff_dashboard(db)
+
+
+@router.get("/kitchen", response_model=list[schema.KitchenOrder])
+def read_kitchen_view(db: Session = Depends(get_db)):
+    orders = controller.read_kitchen_view(db)
+    result = []
+    for order in orders:
+        items = [
+            schema.KitchenItem(
+                sandwich_name=detail.sandwich.sandwich_name,
+                quantity=detail.amount
+            )
+            for detail in order.order_details
+            if detail.sandwich
+        ]
+        result.append(schema.KitchenOrder(
+            id=order.id,
+            tracking_number=order.tracking_number,
+            order_status=order.order_status,
+            order_type=order.order_type,
+            order_date=order.order_date,
+            items=items
+        ))
+    return result
+
+
 @router.get("/{item_id}", response_model=schema.Order)
 def read_one(item_id: int, db: Session = Depends(get_db)):
     return controller.read_one(db, item_id=item_id)

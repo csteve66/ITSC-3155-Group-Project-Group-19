@@ -198,3 +198,31 @@ def update_status_by_role(db: Session, item_id: int, request):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
 
     return item.first()
+
+
+def read_staff_dashboard(db: Session):
+    try:
+        result = (
+            db.query(model.Order)
+            .order_by(model.Order.order_date.desc())
+            .all()
+        )
+    except SQLAlchemyError as e:
+        error = str(e.__dict__['orig'])
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
+    return result
+
+
+def read_kitchen_view(db: Session):
+    ACTIVE_STATUSES = {"pending", "preparing", "ready_for_pickup"}
+    try:
+        result = (
+            db.query(model.Order)
+            .filter(model.Order.order_status.in_(ACTIVE_STATUSES))
+            .order_by(model.Order.order_date.asc())
+            .all()
+        )
+    except SQLAlchemyError as e:
+        error = str(e.__dict__['orig'])
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=error)
+    return result
