@@ -19,6 +19,9 @@ def create(request: schema.ResourceCreate, db: Session = Depends(get_db)):
 def read_all(db: Session = Depends(get_db)):
     return controller.read_all(db)
 
+@router.get("/low-stock", response_model=list[schema.Resource])
+def read_low_stock(threshold: float = 10.0, db: Session = Depends(get_db)):
+    return controller.read_low_stock(db, threshold=threshold)
 
 @router.get("/{item_id}", response_model=schema.Resource)
 def read_one(item_id: int, db: Session = Depends(get_db)):
