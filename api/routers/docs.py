@@ -36,6 +36,12 @@ def get_api_summary():
             "Payments": {
                 "POST /payments/": "Create payment",
                 "POST /payments/{id}/confirm": "Confirm payment"
+            },
+            "Analytics": {
+                "GET /analytics/summary": "Sales totals (excludes cancelled orders)",
+                "GET /analytics/daily": "Revenue and order count per day (zero-filled)",
+                "GET /analytics/top-sandwiches": "Top sandwiches by units sold",
+                "GET /analytics/by-order-type": "Takeout vs delivery breakdown"
             }
         },
         "order_types": {
