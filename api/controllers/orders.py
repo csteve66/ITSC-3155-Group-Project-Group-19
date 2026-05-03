@@ -3,6 +3,7 @@ from fastapi import HTTPException, status, Response, Depends
 from ..models import orders as model
 from ..models import order_details as order_detail_model
 from ..models import sandwiches as sandwich_model
+from ..controllers import promotions as promotions_controller
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy import func
 from datetime import datetime
@@ -30,6 +31,13 @@ def create(db: Session, request):
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Customer address is required for delivery orders"
         )
+
+    promotion_id = None
+    promo = None
+    if getattr(request, 'promo_code', None):
+        promo = promotions_controller.get_valid_promotion_by_code(db, request.promo_code)
+        promotion_id = promo.id
+
     tracking_number = f"ORD-{datetime.now().strftime('%Y%m%d%H%M%S')}-{uuid.uuid4().hex[:6].upper()}"
     new_item = model.Order(
         customer_name=request.customer_name,

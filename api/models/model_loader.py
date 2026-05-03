@@ -68,9 +68,49 @@ def _sync_sandwiches_columns():
             for statement in statements:
                 connection.execute(text(statement))
 
+def _sync_resources_columns():
+    inspector = inspect(engine)
+    existing_columns = {column["name"] for column in inspector.get_columns("resources")}
+    statements = []
+
+    if "unit" not in existing_columns:
+        statements.append(
+            "ALTER TABLE resources ADD COLUMN unit VARCHAR(50) NULL"
+        )
+
+    if statements:
+        with engine.begin() as connection:
+            for statement in statements:
+                connection.execute(text(statement))
+
+def _sync_promotions_columns():
+    inspector = inspect(engine)
+    existing_columns = {column["name"] for column in inspector.get_columns("promotions")}
+    existing_fks = {fk["name"] for fk in inspector.get_foreign_keys("promotions")}
+    statements = []
+
+    if "discount_percentage" not in existing_columns:
+        statements.append(
+            "ALTER TABLE promotions ADD COLUMN discount_percentage DECIMAL(5,2) NOT NULL DEFAULT 0"
+        )
+    if "order_id" in existing_columns:
+        if "promotions_ibfk_1" in existing_fks:
+            statements.append(
+                "ALTER TABLE promotions DROP FOREIGN KEY promotions_ibfk_1"
+            )
+        statements.append(
+            "ALTER TABLE promotions DROP COLUMN order_id"
+        )
+
+    if statements:
+        with engine.begin() as connection:
+            for statement in statements:
+                connection.execute(text(statement))
 
 def index():
     customers.Base.metadata.create_all(engine)
+    promotions.Base.metadata.create_all(engine)
+    _sync_promotions_columns()
     orders.Base.metadata.create_all(engine)
     _sync_orders_columns()
     order_details.Base.metadata.create_all(engine)
@@ -78,6 +118,6 @@ def index():
     sandwiches.Base.metadata.create_all(engine)
     _sync_sandwiches_columns()
     resources.Base.metadata.create_all(engine)
-    promotions.Base.metadata.create_all(engine)
+    _sync_resources_columns()
     payments.Base.metadata.create_all(engine)
     reviews.Base.metadata.create_all(engine)

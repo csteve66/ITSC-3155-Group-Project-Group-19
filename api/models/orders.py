@@ -18,9 +18,10 @@ class Order(Base):
     tracking_number = Column(String(64), nullable=False, unique=True, index=True)
     order_status = Column(String(32), nullable=False, server_default="pending")
     status_updated_at = Column(DATETIME, nullable=False, server_default=str(datetime.now()))
+    promotion_id = Column(Integer, ForeignKey("promotions.id"), nullable=True)
 
     customer = relationship("Customer", back_populates="orders")
-    promotions = relationship("Promotion", back_populates="order")
+    promotion = relationship("Promotion", back_populates="orders", foreign_keys=[promotion_id])
     order_details = relationship("OrderDetail", back_populates="order")
     payments = relationship("Payment", back_populates="order", cascade="all, delete-orphan")
     review = relationship("Review", back_populates="order", uselist=False)

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DATETIME, ForeignKey
+from sqlalchemy import Column, Integer, String, DATETIME, DECIMAL, ForeignKey
 from sqlalchemy.orm import relationship
 from ..dependencies.database import Base
 
@@ -8,7 +8,7 @@ class Promotion(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     code = Column(String(50), nullable=False, unique=True)
+    discount_percentage = Column(DECIMAL(5, 2), nullable=False)
     expiration_date = Column(DATETIME, nullable=False)
-    order_id = Column(Integer, ForeignKey("orders.id"), nullable=True)
 
-    order = relationship("Order", back_populates="promotions")
+    orders = relationship("Order", back_populates="promotion", foreign_keys="Order.promotion_id")
