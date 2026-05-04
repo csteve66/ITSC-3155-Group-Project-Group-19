@@ -23,6 +23,22 @@ def _sync_orders_columns():
             "ALTER TABLE orders ADD COLUMN status_updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP"
         )
 
+    # Model expects order_type (takeout/delivery); older DBs may lack this column.
+    if "order_type" not in existing_columns:
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    "ALTER TABLE orders ADD COLUMN order_type VARCHAR(20) NOT NULL DEFAULT 'takeout'"
+                )
+            )
+
+    # Optional FK to promotions (nullable).
+    if "promotion_id" not in existing_columns:
+        with engine.begin() as connection:
+            connection.execute(
+                text("ALTER TABLE orders ADD COLUMN promotion_id INT NULL")
+            )
+
     if statements:
         with engine.begin() as connection:
             for statement in statements:
